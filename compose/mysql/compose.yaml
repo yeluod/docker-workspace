@@ -1,0 +1,35 @@
+name: mysql-server
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-server
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-init_db}
+      MYSQL_USER: ${MYSQL_USER:-init_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - /Users/wang/workspace/docker_work/mysql:/var/lib/mysql
+      - ./conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - mysql_net
+
+networks:
+  mysql_net:
+    driver: bridge
